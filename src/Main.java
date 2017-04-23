@@ -38,8 +38,8 @@ public class Main {
             tree.insert(i);
         }
 
-        //output size and height
-        System.out.println("Size: " + tree.getSize() + "\t\tHeight: " + tree.height(tree.root));
+        //output size and balanceFactor
+//        System.out.println("Size: " + tree.getSize() + "\t\tHeight: " + tree.balanceFactor(tree.root));
         //first the preorder
         ArrayList<Integer> preorder = new ArrayList<>();
         tree.preorder(tree.root, preorder);
@@ -72,20 +72,20 @@ public class Main {
 
         System.out.println(postordersb.toString());
         /**deleteRecursive every third element of the array from the tree. After each deleteRecursive, output the current
-         *size and height of the tree
+         *size and balanceFactor of the tree
          * */
-        for (int i = 0; i < numbers.size(); i = i + 4) {
-            tree.delete(numbers.get(i));
-            System.out.println("Deleting: " + numbers.get(i) + "\t\tSize: " + tree.getSize() + "\t\tHeight: " + tree.height(tree.root));
-
-        }
+//        for (int i = 0; i < numbers.size(); i = i + 4) {
+//            tree.delete(numbers.get(i));
+//            System.out.println("Deleting: " + numbers.get(i) + "\t\tSize: " + tree.getSize() + "\t\tHeight: " + tree.height(tree.root));
+//
+//        }
 
         /**
          * Next, search for every fifth element of the array. Some of these won’t
          be found. The result of a search should merely output if the value was found or not
          */
         for (int i = 0; i < numbers.size(); i = i + 5) {
-            TreeNode result = tree.search(numbers.get(i), tree.root);
+            AVLNode result = tree.search(numbers.get(i), tree.root);
             System.out.println(numbers.get(i)+ ((result==null)? " Not Found" :" Found"));
         }
 
