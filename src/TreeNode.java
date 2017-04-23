@@ -24,6 +24,11 @@ public class TreeNode {
      */
     private Integer value;
 
+    /**
+     * This is our parent node. Just something we need to store so we can do our rotates
+     */
+    private TreeNode parent;
+
     private int balanceFactor; //this represents our balance factor for a given node
     /**
      * Get the balance factor of the current node
@@ -37,7 +42,16 @@ public class TreeNode {
         this.balanceFactor = balanceFactor;
     }
 
+    public TreeNode getParent() {
+        return parent;
+    }
+
+    public void setParent(TreeNode parent) {
+        this.parent = parent;
+    }
+
     /**
+
      * Default, empty constructor
      */
     public TreeNode() {
