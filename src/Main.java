@@ -13,13 +13,13 @@ public class Main {
 
     public static void main(String[] args) {
         //create our binary tree
-        BinaryTree tree = new BinaryTree();
+        AVLTree tree = new AVLTree();
 
         //create something to store our numbers
         ArrayList<Integer> numbers = new ArrayList<>();
         //attempt to open the file
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("prog4in3.txt")));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("prog4in4.txt")));
             //reference for our line
             String line;
             while ((line = br.readLine()) != null) {

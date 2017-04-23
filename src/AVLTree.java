@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * include helper functions, named by the function name plus 'recursive'. Essentially, binary tree is a tree in which each node
  * only has 2 children, hte left being < the value at the node and the right value being  >= the value at the node
  */
-public class BinaryTree {
+public class AVLTree {
 
 
     //todo  Get height: compute and return the height of the tree
@@ -24,7 +24,7 @@ public class BinaryTree {
      * This is our empty constructor which allows us to
      * create an empty binary tree
      */
-    public BinaryTree() {
+    public AVLTree() {
         size = 0;
     }
 
@@ -34,7 +34,11 @@ public class BinaryTree {
      * @param value
      */
     public void insert(int value) {
-        this.root = insertRecursive(null,  this.root, value); //do the insertion and update the tree
+        if(this.root == null){
+            this.root = new TreeNode(value, 0);
+        }else{
+            this.root = insertRecursive(new TreeNode(value),  this.root); //do the insertion and update the tree
+        }
         size++; //increment the size
     }
 
@@ -46,32 +50,105 @@ public class BinaryTree {
      * @param value the value to insertRecursive
      * @return the updated tree
      */
-    public TreeNode insertRecursive(TreeNode parent, TreeNode tree, int value) {
+    public TreeNode insertRecursive(TreeNode newNode, TreeNode par) {
 
-        //if we are working with a null tree, go ahead and drop the new value at the top
-        if (tree == null) {
-            TreeNode node = new TreeNode(value);
-            //set the balance factor. The difference between the left and right subtree
-            node.setBalanceFactor(height(node.getLeft())- height(node.getRight()));
-            node.setParent(parent);
-            return node;
-        }
-        //otherwise, logically determine whether we should inch down to the left or the right
-        else if (value < tree.getValue()) {
-            //set the left subtree to the final result. essentially, this recursion will ultimately return the whole
-            //binary tree
-            tree.setLeft(insertRecursive(tree, tree.getLeft(), value));
-            tree.setBalanceFactor(height(tree.getLeft())- height(tree.getRight()));
-            tree = balance(tree);
-            return tree;
-        } else {
-            //set the right subtree and recurse to the final result. essentially, this recursion will ultimately return the whole
-            //binary tree
-            tree.setRight(insertRecursive(tree, tree.getRight(), value));
-            tree.setBalanceFactor(height(tree.getLeft())- height(tree.getRight()));
-            tree = balance(tree);
-            return tree;
-        }
+        TreeNode newpar = par;  // root of subtree par
+
+        if (newNode.getValue() < par.getValue())
+        {
+            if (par.getLeft() == null)
+            {
+
+                par.setLeft( newNode);  //attach new node as leaf
+
+            }
+            else {
+
+                par.setLeft(insertRecursive(newNode, par.getLeft()));   // branch left
+
+                if ((height(par.getLeft()) - height(par.getRight())) == 2) {
+
+                    if (newNode.getValue() < par.getLeft().getValue()) {
+
+                        newpar=leftRotation(par);
+
+                    }
+                    else {
+
+                        newpar=leftRightRotation(par);
+
+                    } //else
+                } //if
+            } // else
+        } // if
+
+        else if (newNode.getValue() > par.getValue())  // branch right
+        {
+            if (par.getRight() == null)
+            {
+
+                par.setRight(newNode);   // attach new node as leaf
+
+            }
+            else {
+
+                par.setRight(insertRecursive(newNode, par.getRight()));  // branch right
+
+                if ((height(par.getRight()) - height(par.getLeft())) == 2) {
+
+                    if (newNode.getValue()> par.getRight().getValue()) {
+
+                        newpar=rightRotation(par);
+
+
+                    } //if
+                    else {
+
+                        newpar=rightLeftRotation(par);
+
+                    } //else
+                } //if
+            } //else
+        }  // else if
+
+        else System.out.println("Duplicate Key");
+
+        // Update the height, just in case
+
+        if ((par.getLeft() == null) && (par.getRight()!= null))
+            par.setBalanceFactor(par.getRight().getBalanceFactor()+ 1);
+        else if ((par.getRight() == null) && (par.getLeft()!= null))
+            par.setBalanceFactor(par.getLeft().getBalanceFactor()+ 1);
+        else
+            par.setBalanceFactor(Math.max(height(par.getLeft()), height(par.getRight())) + 1);
+
+        return newpar; // return new root of this subtree
+
+//
+//        //if we are working with a null tree, go ahead and drop the new value at the top
+//        if (tree == null) {
+//            TreeNode node = new TreeNode(value);
+//            //set the balance factor. The difference between the left and right subtree
+//            node.setBalanceFactor(height(node.getLeft())- height(node.getRight()));
+//            node.setParent(parent);
+//            return node;
+//        }
+//        //otherwise, logically determine whether we should inch down to the left or the right
+//        else if (value < tree.getValue()) {
+//            //set the left subtree to the final result. essentially, this recursion will ultimately return the whole
+//            //binary tree
+//            tree.setLeft(insertRecursive(tree, tree.getLeft(), value));
+//            tree.setBalanceFactor(height(tree.getLeft())- height(tree.getRight()));
+//            tree = balance(tree);
+//            return tree;
+//        } else {
+//            //set the right subtree and recurse to the final result. essentially, this recursion will ultimately return the whole
+//            //binary tree
+//            tree.setRight(insertRecursive(tree, tree.getRight(), value));
+//            tree.setBalanceFactor(height(tree.getLeft())- height(tree.getRight()));
+//            tree = balance(tree);
+//            return tree;
+//        }
     }
 
 
@@ -126,7 +203,7 @@ public class BinaryTree {
     public TreeNode deleteRecursive(int value, TreeNode node) {
         //if we get down here, the value is not in the tree, return null and print a message
         if (node == null) {
-            System.out.println("BinaryTree does not contain " + value);
+            System.out.println("AVLTree does not contain " + value);
             return null;
         }
         //otherwise, if the tree contains the node
@@ -299,26 +376,31 @@ public class BinaryTree {
      * @param node
      */
     public TreeNode leftRotation(TreeNode node){
-        TreeNode b = node.getRight();
-        b.setParent(node.getParent());
-        node.setRight(b.getLeft());
-        if(node.getRight() != null)
-            node.getRight().setParent(node);
+       TreeNode child = node.getLeft();
+        node.setLeft(child.getRight());
+        child.setRight(node);
 
-        b.setLeft(node);
-        node.setParent(b);
-
-        if(b.getParent()!= null){
-            if(b.getParent().getRight() == node){
-                b.getParent().setRight(b);
-            }else{
-                b.getParent().setLeft(b);
-            }
-        }
+//        TreeNode b = node.getRight();
+//        b.setParent(node.getParent());
+//        node.setRight(b.getLeft());
+//        if(node.getRight() != null)
+//            node.getRight().setParent(node);
+//
+//        b.setLeft(node);
+//        node.setParent(b);
+//
+//        if(b.getParent()!= null){
+//            if(b.getParent().getRight() == node){
+//                b.getParent().setRight(b);
+//            }else{
+//                b.getParent().setLeft(b);
+//            }
+//        }
 
         node.setBalanceFactor(height(node.getLeft())- height(node.getRight()));
-        b.setBalanceFactor(height(b.getLeft())- height(b.getRight()));
-     return node;
+
+        child.setBalanceFactor(height(child.getLeft())- height(child.getRight()));
+     return child;
     }
 
     /**
@@ -326,29 +408,36 @@ public class BinaryTree {
      * @param node
      */
     public TreeNode rightRotation(TreeNode node){
-        TreeNode b = node.getLeft();
-
-        b.setParent(node.getParent());
-
-        node.setLeft(b.getRight());
-
-        if (node.getLeft()!= null)
-            node.getLeft().setParent( node);
-
-        b.setRight(node);
-        node.setParent(b);
-
-        if (b.getParent() != null) {
-            if (b.getParent().getRight() == node) {
-                b.getParent().setRight(b);
-            } else {
-                b.getParent().setLeft(b);
-            }
-        }
+        TreeNode child = node.getRight();
+        node.setRight(child.getLeft());
+        child.setLeft(node);
+//        TreeNode oldParent= node;
+//        node = node.getLeft();
+//        oldParent.setRight(node.getLeft());
+//        node.setRight(oldParent);
+//        TreeNode b = node.getLeft();
+//
+//        b.setParent(node.getParent());
+//
+//        node.setLeft(b.getRight());
+//
+//        if (node.getLeft()!= null)
+//            node.getLeft().setParent( node);
+//
+//        b.setRight(node);
+//        node.setParent(b);
+//
+//        if (b.getParent() != null) {
+//            if (b.getParent().getRight() == node) {
+//                b.getParent().setRight(b);
+//            } else {
+//                b.getParent().setLeft(b);
+//            }
+//        }
 
         node.setBalanceFactor(height(node.getLeft())- height(node.getRight()));
-        b.setBalanceFactor(height(b.getLeft())- height(b.getRight()));
-        return b;
+        child.setBalanceFactor(height(child.getLeft())- height(child.getRight()));
+        return child;
     }
 
     /**
@@ -356,18 +445,19 @@ public class BinaryTree {
      * @param node the parent node in which we would like to rotate
      */
     public TreeNode leftRightRotation(TreeNode node){
-        //perform first the left rotation
-        node = leftRotation(node);
-        //then perform the right
-        return rightRotation(node);
-
-    }
-
-    public TreeNode rightLeftRotation(TreeNode node){
         //perform right rotation first
         node = rightRotation(node);
         // then the left
         return leftRotation(node);
+
+
+    }
+
+    public TreeNode rightLeftRotation(TreeNode node){
+        //perform first the left rotation
+        node = leftRotation(node);
+        //then perform the right
+        return rightRotation(node);
     }
 }
 
