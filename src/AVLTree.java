@@ -20,77 +20,135 @@ class AVLTree {
 
 //--------------------------------------------------------------
 
-    public AVLNode search(int key, AVLNode foo)  // RECURSIVE search node with given key
-    {
+    /**
+     * This is our recursive search function, this function will traverse the nodes to find the value we are looking for,
+     * returning nill otherwise
+     *
+     * @param value the value we are searching for
+     * @param node  the starting node
+     * @return
+     */
+    public AVLNode search(int value, AVLNode node) {
+        //if the node we are currently on is not null, check to see if the value exists further down
+        if (node != null) {
+            //if we've found the value, go ahead and return it
+            if (value == node.getValue()) {
+                return node;
+            } else if (value < node.getValue()) { //otherwise check if hte vlaue falls less than the node we are on
+                //if it does, we know that we should search to the left
+                return search(value, node.getLeft());
+            } else {
+                //otherwise, we should look the right
+                return search(value, node.getRight());
+            }
+        }
+        //if we get down here, we know that the node does not exist.
+        return null;
 
-        if (foo == null)
-            return null;
-        else if (foo.value == key)
-            return foo;
-        else if (foo.value < key)
-            return search(key, foo.right);
-        else
-            return search(key, foo.left);
-
-        // return null;  // pointless return to satisfy idiot compiler
-
-    }  // end search()
+    }
 
 // -------------------------------------------------------
-
-    public int height(AVLNode x)  // return balanceFactor of tree rooted at x
+    /**
+     * This is our recursive height traversal function, this one will traverse the nodes recursively and
+     * return the farthest depth we've reached
+     *
+     * @param node  the root of the tree (or subtree) we are starting with
+     * @return int the depth of the tree (or subtree)
+     */
+    int height(AVLNode node)
     {
-        if (x == null) return -1;
-        else return x.balanceFactor;
+        //base case
+        if (node == null)
+            return 0;
+        else
+        {
+            //get the depth of the left and right subtrees
+            //tired using max(), but some strange values came up
+            int leftDepth = height(node.getLeft());
+            int rightDepth = height(node.getRight());
+
+            //basically determine which is deeper, the left or right subtrees
+            //increment and return
+            if (leftDepth > rightDepth)
+                return leftDepth + 1;
+            else
+                return rightDepth + 1;
+        }
     }
 
-    public AVLNode rotatewithleft(AVLNode c) {
-        AVLNode p;  // left child of c
+    /**
+     * This is our left rotate function. We pass in an unbalanced subtree and left rotate to attempt to rebalance is
+     * @param node the root of the subtree
+     * @return AVLNode the new root
+     */
+    public AVLNode leftRotate(AVLNode node) {
 
-        p = c.left;
-        c.left = p.right;
-        p.right = c;
+        //first, get the left child
+        AVLNode leftChild = node.left;// left child of the node
+        //adjust the left child of the parent node
+        node.left = leftChild.right;
+        //adjust the right child of the pivot node
+        leftChild.right = node;
 
-        c.balanceFactor = Math.max(height(c.left), height(c.right)) + 1;
-        p.balanceFactor = Math.max(height(p.left), height(p.right)) + 1;
-
-        return p;
-
-    }
-
-    public AVLNode rotatewithright(AVLNode c) {
-
-        AVLNode p;  // right child of c
-
-        p = c.right;
-        c.right = p.left;
-        p.left = c;
-
-        c.balanceFactor = Math.max(height(c.left), height(c.right)) + 1;
-        p.balanceFactor = Math.max(height(p.left), height(p.right)) + 1;
-
-        return p;
-
-    }
-
-    public AVLNode doublerotatewithleft(AVLNode c) {
-
-        AVLNode tmp;
-
-        c.left = rotatewithright(c.left);
-        tmp = rotatewithleft(c);
-
-        return tmp;
+        // finally, we need to fix the balance factors
+        node.balanceFactor = height(node.left)- height(node.right);//Math.max(height(c.left), height(c.right)) + 1;
+        leftChild.balanceFactor = height(leftChild.left)- height(leftChild.right);//Math.max(height(p.left), height(p.right)) + 1;
+        //return the left child of the parent node to replace the parent node
+        return leftChild;
 
     }
 
+    /**
+     * This is our right rotate method. Take the right child of an unbalanced root node, move it to the root and rotate teh
+     * original root to the right
+     * @param node the unbalanced parent node of hte subtree
+     * @return AVLNode the new head of the subtree
+     */
+    public AVLNode rightRotate(AVLNode node) {
 
+        //get the right
+        AVLNode rightChild = node.right;
+        //update the child of the parent noe
+        node.right = rightChild.left;
+        //update the right child's left node
+        rightChild.left = node;
+
+        //finally, we simply update the balances of the nodes
+        node.balanceFactor =height(node.left)- height(node.right);// Math.max(height(node.left), height(node.right)) + 1;
+        rightChild.balanceFactor = height(rightChild.left)- height(rightChild.right);//Math.max(height(rightChild.left), height(rightChild.right)) + 1;
+
+        //return the fhild
+        return rightChild;
+
+    }
+
+
+    /**
+     * This is our left right rotate, perform a right rotate first, followed by a left
+     * @param node the unbalanced parent node we need to rotate
+     * @return the new parent node
+     */
+    public AVLNode doublerotatewithleft(AVLNode node) {
+
+        //perform the right rotate
+        node.left = rightRotate(node.left);
+        //return the result of the left rotate
+        return leftRotate(node);
+
+    }
+
+
+    /**
+     *
+     * @param c
+     * @return
+     */
     public AVLNode doublerotatewithright(AVLNode c) {
 
         AVLNode tmp;
 
-        c.right = rotatewithleft(c.right);
-        tmp = rotatewithright(c);
+        c.right = leftRotate(c.right);
+        tmp = rightRotate(c);
 
         return tmp;
 
@@ -114,7 +172,7 @@ class AVLTree {
 
                     if (newNode.value < par.left.value) {
 
-                        newpar = rotatewithleft(par);
+                        newpar = leftRotate(par);
 
                     } else {
 
@@ -139,7 +197,7 @@ class AVLTree {
 
                     if (newNode.value > par.right.value) {
 
-                        newpar = rotatewithright(par);
+                        newpar = rightRotate(par);
 
 
                     } //if
@@ -161,7 +219,7 @@ class AVLTree {
         else if ((par.right == null) && (par.left != null))
             par.balanceFactor = par.left.balanceFactor + 1;
         else
-            par.balanceFactor = Math.max(height(par.left), height(par.right)) + 1;
+            par.balanceFactor = height(par.left)- height(par.right);//Math.max(height(par.left), height(par.right)) + 1;
 
         return newpar; // return new root of this subtree
 
